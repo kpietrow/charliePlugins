@@ -13,13 +13,16 @@ import java.util.List;
  * @author Devin Young and Kevin Pietrow
  */
 public class Bot implements IBot{
+    protected Hid hid;
     protected Hand playing;
+    protected Dealer dealer;
+    protected Seat seat;
     
     /**
      * Constructor
      */
     public Bot(){
-        Hid hid = new Hid(Seat.NONE, 0, 0);
+        hid = new Hid(Seat.NONE, 0, 0);
         playing = new Hand(hid);
     }
     /**
@@ -37,7 +40,7 @@ public class Bot implements IBot{
      */
     @Override
     public void setDealer(Dealer dealer){
-        
+        this.dealer = dealer;
     }
     
     /**
@@ -46,7 +49,7 @@ public class Bot implements IBot{
      */
     @Override
     public void sit(Seat seat){
-        
+        this.seat = seat;
     }
 
     /**
