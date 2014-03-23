@@ -13,7 +13,15 @@ import java.util.List;
  * @author Devin Young and Kevin Pietrow
  */
 public class Bot implements IBot{
-
+    protected Hand playing;
+    
+    /**
+     * Constructor
+     */
+    public Bot(){
+        Hid hid = new Hid(Seat.NONE, 0, 0);
+        playing = new Hand(hid);
+    }
     /**
      * Gets the bots hand.
      * @return Hand
