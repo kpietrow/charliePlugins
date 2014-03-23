@@ -1,18 +1,39 @@
 package charlie.bot.server;
 
+import charlie.actor.RealPlayer;
 import charlie.card.Card;
 import charlie.card.Hand;
 import charlie.card.Hid;
 import charlie.dealer.Dealer;
 import charlie.dealer.Seat;
+import charlie.message.view.to.Blackjack;
+import charlie.message.view.to.Bust;
+import charlie.message.view.to.Charlie;
+import charlie.message.view.to.Deal;
+import charlie.message.view.to.GameOver;
+import charlie.message.view.to.GameStart;
+import charlie.message.view.to.Loose;
+import charlie.message.view.to.Play;
+import charlie.message.view.to.Push;
+import charlie.message.view.to.Shuffle;
+import charlie.message.view.to.Win;
 import charlie.plugin.IBot;
+import com.googlecode.actorom.Actor;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import com.googlecode.actorom.Address;
+import com.googlecode.actorom.remote.ClientTopology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a class for bot players running in the server.
  * @author Devin Young and Kevin Pietrow
  */
 public class Bot implements IBot{
+    private final Logger LOG = LoggerFactory.getLogger(RealPlayer.class);
+    ClientTopology topology;
+    protected Actor courier; 
     protected Hid hid;
     protected Hand playing;
     protected Dealer dealer;
@@ -20,10 +41,21 @@ public class Bot implements IBot{
     
     /**
      * Constructor
+     * @param dealer
+     * @param courierAddress
      */
-    public Bot(){
+    public Bot(Dealer dealer, Address courierAddress){
         hid = new Hid(Seat.NONE, 0, 0);
         playing = new Hand(hid);
+        
+        String host = courierAddress.getHost();
+        Integer port = courierAddress.getPort();
+        LOG.info("courier addr = "+courierAddress);
+        
+        this.topology = new ClientTopology(host, port, 5, TimeUnit.SECONDS, 3, TimeUnit.SECONDS);
+
+        // Tell courier surrogate's ready
+        this.courier = topology.getActor(courierAddress);
     }
     /**
      * Gets the bots hand.
@@ -60,7 +92,7 @@ public class Bot implements IBot{
      */
     @Override
     public void startGame(List<Hid> hids, int shoeSize) {
-        
+        courier.send(new GameStart(hids,shoeSize));
     }
 
     /**
@@ -69,7 +101,7 @@ public class Bot implements IBot{
      */
     @Override
     public void endGame(int shoeSize) {
-        
+        courier.send(new GameOver(shoeSize));
     }
 
     /**
@@ -81,7 +113,9 @@ public class Bot implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
+        Deal deal = new Deal(hid,values,card);
         
+        courier.send(deal);
     }
 
     /**
@@ -89,7 +123,7 @@ public class Bot implements IBot{
      */
     @Override
     public void insure() {
-        
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
@@ -98,7 +132,7 @@ public class Bot implements IBot{
      */
     @Override
     public void bust(Hid hid) {
-        
+        courier.send(new Bust(hid));
     }
 
     /**
@@ -107,7 +141,7 @@ public class Bot implements IBot{
      */
     @Override
     public void win(Hid hid) {
-        
+        courier.send(new Win(hid));
     }
 
     /**
@@ -116,7 +150,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void blackjack(Hid hid) {
-        
+        courier.send(new Blackjack(hid) );
     }
 
     /**
@@ -125,7 +159,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void charlie(Hid hid) {
-        
+        courier.send(new Charlie(hid) );
     }
 
     /**
@@ -134,7 +168,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void lose(Hid hid) {
-        
+        courier.send(new Loose(hid));
     }
 
     /**
@@ -143,7 +177,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void push(Hid hid) {
-        
+        courier.send(new Push(hid));
     }
 
     /**
@@ -151,7 +185,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void shuffling() {
-        
+        courier.send(new Shuffle());
     }
 
     /**
@@ -160,6 +194,6 @@ public class Bot implements IBot{
      */ 
     @Override
     public void play(Hid hid) {
-        
+        courier.send(new Play(hid));
     }
 }
