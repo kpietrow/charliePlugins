@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * The BasicStrategy class implements the full 468 cell
  * Basic Strategy card. The rules are implemented so that
- * they can be re-used.
+ * they can be re-used. test
  * 
  * @author Devin Young And Kevin Pietrow
  */
