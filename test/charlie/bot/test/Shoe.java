@@ -10,7 +10,7 @@ import java.util.Random;
 
 /**
  *
- * @author Devin
+ * @author Devin Young and Kevin Pietrow
  */
 public class Shoe extends charlie.card.Shoe{
     @Override 
