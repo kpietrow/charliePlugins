@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  *
- * @author Devin's Work
+ * @author Devin
  */
 public class Bot implements IBot{
 
