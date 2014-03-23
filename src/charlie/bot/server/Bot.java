@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author Devin Young and Kevin Pietrow
  */
 public class Bot implements IBot{
-    private final Logger LOG = LoggerFactory.getLogger(RealPlayer.class);
+    private final Logger LOG = LoggerFactory.getLogger(Bot.class);
     ClientTopology topology;
     protected Actor courier; 
     protected Hid hid;
@@ -45,8 +45,7 @@ public class Bot implements IBot{
      * @param courierAddress
      */
     public Bot(Dealer dealer, Address courierAddress){
-        hid = new Hid(Seat.NONE, 0, 0);
-        playing = new Hand(hid);
+    
         
         String host = courierAddress.getHost();
         Integer port = courierAddress.getPort();
@@ -63,7 +62,7 @@ public class Bot implements IBot{
      */
     @Override
     public Hand getHand() {
-        return null;
+        return playing;
     }
 
     /**
@@ -82,6 +81,8 @@ public class Bot implements IBot{
     @Override
     public void sit(Seat seat){
         this.seat = seat;
+        hid = new Hid(this.seat, 0, 0);
+        playing = new Hand(hid);
     }
 
     /**
@@ -113,9 +114,18 @@ public class Bot implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
-        Deal deal = new Deal(hid,values,card);
+        Hand hand = hands.get(hid);
         
-        courier.send(deal);
+        if(hand == null) {
+            hand = new Hand(hid);
+            
+            hands.put(hid, hand);
+            
+            if(hid.getSeat() == Seat.DEALER)
+                this.dealerHand = hand;
+        }
+            
+        hand.hit(card);
     }
 
     /**
