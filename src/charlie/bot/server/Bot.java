@@ -6,6 +6,7 @@ import charlie.card.Hand;
 import charlie.card.Hid;
 import charlie.dealer.Dealer;
 import charlie.dealer.Seat;
+import charlie.message.view.from.Arrival;
 import charlie.message.view.to.Blackjack;
 import charlie.message.view.to.Bust;
 import charlie.message.view.to.Charlie;
@@ -22,6 +23,7 @@ import com.googlecode.actorom.Actor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import com.googlecode.actorom.Address;
+import com.googlecode.actorom.annotation.OnMessage;
 import com.googlecode.actorom.remote.ClientTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,6 @@ public class Bot implements IBot{
      */
     public Bot(Dealer dealer, Address courierAddress){
     
-        
         String host = courierAddress.getHost();
         Integer port = courierAddress.getPort();
         LOG.info("courier addr = "+courierAddress);
@@ -55,6 +56,8 @@ public class Bot implements IBot{
 
         // Tell courier surrogate's ready
         this.courier = topology.getActor(courierAddress);
+        
+      
     }
     /**
      * Gets the bots hand.
@@ -114,7 +117,7 @@ public class Bot implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
-        Hand hand = hands.get(hid);
+       /* Hand hand = hands.get(hid);
         
         if(hand == null) {
             hand = new Hand(hid);
@@ -125,7 +128,13 @@ public class Bot implements IBot{
                 this.dealerHand = hand;
         }
             
-        hand.hit(card);
+        hand.hit(card); */
+    }
+    
+    @OnMessage(type = Arrival.class)
+    public void onReceive(Arrival arrival) {
+        Address courierAddress = arrival.getSource();
+        LOG.info("bot test "+courierAddress);
     }
 
     /**
