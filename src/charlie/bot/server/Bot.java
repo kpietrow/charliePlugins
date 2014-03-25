@@ -7,6 +7,10 @@ import charlie.card.Hid;
 import charlie.dealer.Dealer;
 import charlie.dealer.Seat;
 import charlie.message.view.from.Arrival;
+import charlie.message.view.from.DoubleDown;
+import charlie.message.view.from.Hit;
+import charlie.message.view.from.Request;
+import charlie.message.view.from.Stay;
 import charlie.message.view.to.Blackjack;
 import charlie.message.view.to.Bust;
 import charlie.message.view.to.Charlie;
@@ -19,6 +23,7 @@ import charlie.message.view.to.Push;
 import charlie.message.view.to.Shuffle;
 import charlie.message.view.to.Win;
 import charlie.plugin.IBot;
+import charlie.server.Ticket;
 import com.googlecode.actorom.Actor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,21 +48,10 @@ public class Bot implements IBot{
     
     /**
      * Constructor
-     * @param dealer
-     * @param courierAddress
      */
-    public Bot(Dealer dealer, Address courierAddress){
-    
-        String host = courierAddress.getHost();
-        Integer port = courierAddress.getPort();
-        LOG.info("courier addr = "+courierAddress);
+    public Bot(){
+        LOG.info("IN BOT..."); 
         
-        this.topology = new ClientTopology(host, port, 5, TimeUnit.SECONDS, 3, TimeUnit.SECONDS);
-
-        // Tell courier surrogate's ready
-        this.courier = topology.getActor(courierAddress);
-        
-      
     }
     /**
      * Gets the bots hand.
@@ -96,7 +90,8 @@ public class Bot implements IBot{
      */
     @Override
     public void startGame(List<Hid> hids, int shoeSize) {
-        courier.send(new GameStart(hids,shoeSize));
+        LOG.info("IN START GAME...");
+        //courier.send(new GameStart(hids,shoeSize));
     }
 
     /**
@@ -129,12 +124,6 @@ public class Bot implements IBot{
         }
             
         hand.hit(card); */
-    }
-    
-    @OnMessage(type = Arrival.class)
-    public void onReceive(Arrival arrival) {
-        Address courierAddress = arrival.getSource();
-        LOG.info("bot test "+courierAddress);
     }
 
     /**
