@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import com.googlecode.actorom.Address;
 import com.googlecode.actorom.annotation.OnMessage;
 import com.googlecode.actorom.remote.ClientTopology;
+import java.util.Random;
 import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,12 +224,17 @@ public class Bot implements IBot{
     public void play(Hid hid) {
         final IPlayer b = this;
         final Hid h = hid;
+        Random random = new Random();
+        int oneSec = 1000;
+        int threeSecs = 3001;
+        final int R = random.nextInt(threeSecs - oneSec) + oneSec;
+        System.out.println(R);
         Runnable thread = new Runnable() {
             @Override
             public void run() {
                 LOG.info("started bot worker thread...");
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(R);
                 } catch (InterruptedException ex) {
                     java.util.logging.Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
                 }
