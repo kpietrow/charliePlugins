@@ -22,7 +22,9 @@ import charlie.message.view.to.Play;
 import charlie.message.view.to.Push;
 import charlie.message.view.to.Shuffle;
 import charlie.message.view.to.Win;
+import charlie.plugin.IAdvisor;
 import charlie.plugin.IBot;
+import charlie.plugin.IPlayer;
 import charlie.server.Ticket;
 import com.googlecode.actorom.Actor;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import com.googlecode.actorom.Address;
 import com.googlecode.actorom.annotation.OnMessage;
 import com.googlecode.actorom.remote.ClientTopology;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +48,7 @@ public class Bot implements IBot{
     protected Hand playing;
     protected Dealer dealer;
     protected Seat seat;
+    protected IAdvisor advisor;
     
     /**
      * Constructor
@@ -100,7 +104,7 @@ public class Bot implements IBot{
      */
     @Override
     public void endGame(int shoeSize) {
-        courier.send(new GameOver(shoeSize));
+        LOG.info("IN END GAME...");
     }
 
     /**
@@ -112,6 +116,11 @@ public class Bot implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
+        LOG.info("IN BOT DEAL...");
+        if (playing.getHid() == hid && playing.size() > 2 && !(playing.isBroke())){
+            System.out.println("PLAY SIZE > 2");
+            play(hid);
+        }
        /* Hand hand = hands.get(hid);
         
         if(hand == null) {
@@ -140,7 +149,7 @@ public class Bot implements IBot{
      */
     @Override
     public void bust(Hid hid) {
-        courier.send(new Bust(hid));
+        LOG.info("busted...");
     }
 
     /**
@@ -149,7 +158,7 @@ public class Bot implements IBot{
      */
     @Override
     public void win(Hid hid) {
-        courier.send(new Win(hid));
+        LOG.info("IN WIN...");
     }
 
     /**
@@ -158,7 +167,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void blackjack(Hid hid) {
-        courier.send(new Blackjack(hid) );
+        LOG.info("IN BLACKJACK...");
     }
 
     /**
@@ -167,7 +176,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void charlie(Hid hid) {
-        courier.send(new Charlie(hid) );
+        LOG.info("IN CHARLIE...");
     }
 
     /**
@@ -176,7 +185,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void lose(Hid hid) {
-        courier.send(new Loose(hid));
+        LOG.info("IN LOSE...");
     }
 
     /**
@@ -185,7 +194,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void push(Hid hid) {
-        courier.send(new Push(hid));
+        LOG.info("IN PUSH...");
     }
 
     /**
@@ -193,7 +202,7 @@ public class Bot implements IBot{
      */ 
     @Override
     public void shuffling() {
-        courier.send(new Shuffle());
+        LOG.info("IN SHUFFLING...");
     }
 
     /**
@@ -202,11 +211,25 @@ public class Bot implements IBot{
      */ 
     @Override
     public void play(Hid hid) {
+        final IPlayer b = this;
+        final Hid h = hid;
         Runnable thread = new Runnable() {
             @Override
             public void run() {
                 LOG.info("started bot worker thread...");
-            }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    java.util.logging.Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                if (h == playing.getHid())
+                    dealer.hit(b, h);
+
+        //charlie.util.Play advice = advisor.advise(playing,dealerHand.getCard(1));
+
+        //if(advice == charlie.util.Play.NONE)
+           // return true;
+            }  
         };
 
         new Thread(thread).start();
