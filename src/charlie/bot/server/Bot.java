@@ -202,6 +202,14 @@ public class Bot implements IBot{
      */ 
     @Override
     public void play(Hid hid) {
-        courier.send(new Play(hid));
+        Runnable thread = new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("started bot worker thread...");
+            }
+        };
+
+        new Thread(thread).start();
+        //courier.send(new Play(hid));
     }
 }
