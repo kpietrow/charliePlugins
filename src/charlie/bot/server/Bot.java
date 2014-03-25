@@ -1,6 +1,7 @@
 package charlie.bot.server;
 
 import charlie.actor.RealPlayer;
+import charlie.advisor.BasicStrategy;
 import charlie.card.Card;
 import charlie.card.Hand;
 import charlie.card.Hid;
@@ -18,7 +19,7 @@ import charlie.message.view.to.Deal;
 import charlie.message.view.to.GameOver;
 import charlie.message.view.to.GameStart;
 import charlie.message.view.to.Loose;
-import charlie.message.view.to.Play;
+//import charlie.message.view.to.Play;
 import charlie.message.view.to.Push;
 import charlie.message.view.to.Shuffle;
 import charlie.message.view.to.Win;
@@ -26,6 +27,7 @@ import charlie.plugin.IAdvisor;
 import charlie.plugin.IBot;
 import charlie.plugin.IPlayer;
 import charlie.server.Ticket;
+import charlie.util.Play;
 import com.googlecode.actorom.Actor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,13 +51,16 @@ public class Bot implements IBot{
     protected Dealer dealer;
     protected Seat seat;
     protected IAdvisor advisor;
+    protected Hid dealerHid;
+    protected Card dealerUpCard;
+    protected BasicStrategy bs;
     
     /**
      * Constructor
      */
     public Bot(){
         LOG.info("IN BOT..."); 
-        
+        bs = new BasicStrategy();
     }
     /**
      * Gets the bots hand.
@@ -117,6 +122,11 @@ public class Bot implements IBot{
     @Override
     public void deal(Hid hid, Card card, int[] values) {
         LOG.info("IN BOT DEAL...");
+        //System.out.println("hid: " + hid + " card: " + card);
+        if (this.dealerHid == null && hid.getSeat() == Seat.DEALER){
+            this.dealerHid = hid;
+            this.dealerUpCard = card; 
+        }
         if (playing.getHid() == hid && playing.size() > 2 && !(playing.isBroke())){
             System.out.println("PLAY SIZE > 2");
             play(hid);
@@ -222,11 +232,18 @@ public class Bot implements IBot{
                 } catch (InterruptedException ex) {
                     java.util.logging.Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (h == playing.getHid())
-                    dealer.hit(b, h);
-
-        //charlie.util.Play advice = advisor.advise(playing,dealerHand.getCard(1));
-
+                if (h == playing.getHid()){
+                    Play advice = bs.advise(playing, dealerUpCard);
+                    System.out.println(advice);
+                    if (advice == Play.DOUBLE_DOWN)
+                        dealer.doubleDown(b, h);
+                    if (advice == Play.HIT)
+                        dealer.hit(b, h);
+                    if (advice == Play.SPLIT)
+                        dealer.hit(b, h);
+                    if (advice == Play.STAY)
+                        dealer.stay(b, h);
+                }
         //if(advice == charlie.util.Play.NONE)
            // return true;
             }  
