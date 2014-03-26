@@ -1,38 +1,17 @@
 package charlie.bot.server;
 
-import charlie.actor.RealPlayer;
 import charlie.advisor.BasicStrategy;
 import charlie.card.Card;
 import charlie.card.Hand;
 import charlie.card.Hid;
 import charlie.dealer.Dealer;
 import charlie.dealer.Seat;
-import charlie.message.view.from.Arrival;
-import charlie.message.view.from.DoubleDown;
-import charlie.message.view.from.Hit;
-import charlie.message.view.from.Request;
-import charlie.message.view.from.Stay;
-import charlie.message.view.to.Blackjack;
-import charlie.message.view.to.Bust;
-import charlie.message.view.to.Charlie;
-import charlie.message.view.to.Deal;
-import charlie.message.view.to.GameOver;
-import charlie.message.view.to.GameStart;
-import charlie.message.view.to.Loose;
-//import charlie.message.view.to.Play;
-import charlie.message.view.to.Push;
-import charlie.message.view.to.Shuffle;
-import charlie.message.view.to.Win;
 import charlie.plugin.IAdvisor;
 import charlie.plugin.IBot;
 import charlie.plugin.IPlayer;
-import charlie.server.Ticket;
 import charlie.util.Play;
 import com.googlecode.actorom.Actor;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import com.googlecode.actorom.Address;
-import com.googlecode.actorom.annotation.OnMessage;
 import com.googlecode.actorom.remote.ClientTopology;
 import java.util.Random;
 import java.util.logging.Level;
@@ -101,7 +80,6 @@ public class Bot implements IBot{
     @Override
     public void startGame(List<Hid> hids, int shoeSize) {
         LOG.info("IN START GAME...");
-        //courier.send(new GameStart(hids,shoeSize));
     }
 
     /**
@@ -123,27 +101,14 @@ public class Bot implements IBot{
     @Override
     public void deal(Hid hid, Card card, int[] values) {
         LOG.info("IN BOT DEAL...");
-        //System.out.println("hid: " + hid + " card: " + card);
+        
         if (this.dealerHid == null && hid.getSeat() == Seat.DEALER){
             this.dealerHid = hid;
             this.dealerUpCard = card; 
         }
         if (playing.getHid() == hid && playing.size() > 2 && !(playing.isBroke())){
-            System.out.println("PLAY SIZE > 2");
             play(hid);
         }
-       /* Hand hand = hands.get(hid);
-        
-        if(hand == null) {
-            hand = new Hand(hid);
-            
-            hands.put(hid, hand);
-            
-            if(hid.getSeat() == Seat.DEALER)
-                this.dealerHand = hand;
-        }
-            
-        hand.hit(card); */
     }
 
     /**
@@ -222,40 +187,49 @@ public class Bot implements IBot{
      */ 
     @Override
     public void play(Hid hid) {
-        final IPlayer b = this;
-        final Hid h = hid;
         Random random = new Random();
-        int oneSec = 1000;
-        int threeSecs = 3001;
-        final int R = random.nextInt(threeSecs - oneSec) + oneSec;
-        System.out.println(R);
+        final IPlayer bot = this;
+        final Hid botHid = hid;
+        final int DELAY = random.nextInt(3001 - 1000) + 1000;
+        final int randomPlay = random.nextInt(4);
+        final int ignoreBS = DELAY % 5;
+        final Play[] plays = {Play.DOUBLE_DOWN, Play.HIT, Play.SPLIT, Play.STAY};
+
         Runnable thread = new Runnable() {
             @Override
             public void run() {
-                LOG.info("started bot worker thread...");
+                Play advice;
+                
                 try {
-                    Thread.sleep(R);
+                    Thread.sleep(DELAY);
                 } catch (InterruptedException ex) {
                     java.util.logging.Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (h == playing.getHid()){
-                    Play advice = bs.advise(playing, dealerUpCard);
-                    System.out.println(advice);
-                    if (advice == Play.DOUBLE_DOWN)
-                        dealer.doubleDown(b, h);
-                    if (advice == Play.HIT)
-                        dealer.hit(b, h);
-                    if (advice == Play.SPLIT)
-                        dealer.hit(b, h);
-                    if (advice == Play.STAY)
-                        dealer.stay(b, h);
+                if (botHid == playing.getHid()) {
+                    if (ignoreBS == 0) {
+                        advice = plays[randomPlay];
+                    } 
+                    else {
+                        advice = bs.advise(playing, dealerUpCard);
+                    }
+                    
+                    if (advice == Play.DOUBLE_DOWN && playing.size() == 2) {
+                        dealer.doubleDown(bot, botHid);
+                    } 
+                    else if (advice == Play.SPLIT) {
+                        dealer.hit(bot, botHid);
+                    } 
+                    else if (advice == Play.STAY) {
+                        dealer.stay(bot, botHid);
+                    } 
+                    else {
+                        dealer.hit(bot, botHid);
+                    }
                 }
-        //if(advice == charlie.util.Play.NONE)
-           // return true;
-            }  
+            }
+
         };
 
         new Thread(thread).start();
-        //courier.send(new Play(hid));
     }
 }
