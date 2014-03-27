@@ -38,7 +38,7 @@ public class Responder implements Runnable {
     public void run() {
         Random random = new Random();
         final Hid botHid = myHand.getHid();
-        final int DELAY = random.nextInt(3001 - 1000) + 1000;
+        final int DELAY = random.nextInt(2501 - 1000) + 1000;
         final int randomPlay = random.nextInt(4);
         final int ignoreBS = DELAY % 5;
         final Play[] plays = {Play.DOUBLE_DOWN, Play.HIT, Play.SPLIT, Play.STAY};
@@ -60,7 +60,13 @@ public class Responder implements Runnable {
             if (advice == Play.DOUBLE_DOWN && myHand.size() == 2) {
                 dealer.doubleDown(bot, botHid);
             } else if (advice == Play.SPLIT) {
-                dealer.hit(bot, botHid);
+                if (myHand.getValue() >= 17 || (myHand.getValue() <= 16 && dealerUpCard.value() <= 6 )) {
+                    dealer.stay(bot, botHid);
+                } else if (myHand.getValue() <= 10 || (myHand.getValue() <= 16 && dealerUpCard.value() >= 7 && dealerUpCard.value() <= 11)) {
+                    dealer.hit(bot, botHid);
+                } else if (myHand.getValue() == 11 && myHand.size() == 2) {
+                    dealer.doubleDown(bot, botHid);
+                }              
             } else if (advice == Play.STAY) {
                 dealer.stay(bot, botHid);
             } else {
