@@ -48,7 +48,7 @@ public class Responder implements Runnable {
         try {
             Thread.sleep(DELAY);
         } catch (InterruptedException ex) {
-            java.util.logging.Logger.getLogger(Bot.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(B9.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (botHid == myHand.getHid()) {
             if (ignoreBS == 0) {
