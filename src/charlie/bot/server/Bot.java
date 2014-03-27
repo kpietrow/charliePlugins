@@ -6,11 +6,18 @@ import charlie.card.Hand;
 import charlie.card.Hid;
 import charlie.dealer.Dealer;
 import charlie.dealer.Seat;
+import charlie.message.view.from.Bet;
+import charlie.message.view.from.DoubleDown;
+import charlie.message.view.from.Hit;
+import charlie.message.view.from.Request;
+import charlie.message.view.from.Stay;
 import charlie.plugin.IAdvisor;
 import charlie.plugin.IBot;
 import charlie.plugin.IPlayer;
 import charlie.util.Play;
 import com.googlecode.actorom.Actor;
+import com.googlecode.actorom.Address;
+import com.googlecode.actorom.annotation.OnMessage;
 import java.util.List;
 import com.googlecode.actorom.remote.ClientTopology;
 import java.util.Random;
@@ -34,6 +41,7 @@ public class Bot implements IBot{
     protected Hid dealerHid;
     protected Card dealerUpCard;
     protected BasicStrategy bs;
+    private Address myAddress;
     
     /**
      * Constructor
@@ -42,6 +50,36 @@ public class Bot implements IBot{
         LOG.info("IN BOT..."); 
         bs = new BasicStrategy();
     }
+    
+    /**
+     * Receives a bet from the courier.
+     * @param bet Bet
+     */
+    @OnMessage(type = Bet.class)
+    public void onReceive(Bet bet) {     
+        LOG.info("player actor received bet = "+bet.getHid().getAmt());
+    }
+    
+    /**
+     * Receives a request from the courier.
+     * @param request Request
+     */
+    @OnMessage(type = Request.class)
+    public void onReceive(Request request) {
+        LOG.info("received request = "+request);
+        Hid hand = request.getHid();
+        
+            LOG.error("received unknown request: "+request+" for hand = "+hand);
+    }
+    /**
+     * Sets my address since courier doesn't know where it is.
+     * @param mine My address
+     */
+    public void setMyAddress(Address mine) {
+        this.myAddress = mine;
+        System.out.println("MINE: " + mine);
+    }
+    
     /**
      * Gets the bots hand.
      * @return Hand
@@ -106,7 +144,7 @@ public class Bot implements IBot{
             this.dealerHid = hid;
             this.dealerUpCard = card; 
         }
-        if (playing.getHid() == hid && playing.size() > 2 && !(playing.isBroke())){
+        if (playing.getHid().equals(hid) && playing.size() > 2 && !(playing.isBroke())){
             play(hid);
         }
     }
@@ -182,12 +220,24 @@ public class Bot implements IBot{
     }
 
     /**
+     * Responds when it is my turn.
+     */
+    protected void respond() {
+        LOG.info("IN RESPOND...");
+        new Thread(new Responder(this,playing,dealer,dealerUpCard)).start();        
+    }
+    
+    /**
      * Tells player to start playing hand.
      * @param hid Hand id
      */ 
     @Override
     public void play(Hid hid) {
-        Random random = new Random();
+        LOG.info("IN PLAY...");
+        if (hid == playing.getHid()) {
+            respond();
+        }
+       /* Random random = new Random();
         final IPlayer bot = this;
         final Hid botHid = hid;
         final int DELAY = random.nextInt(3001 - 1000) + 1000;
@@ -230,6 +280,6 @@ public class Bot implements IBot{
 
         };
 
-        new Thread(thread).start();
+        new Thread(thread).start(); */
     }
 }
