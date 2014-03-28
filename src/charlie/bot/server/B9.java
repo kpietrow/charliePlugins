@@ -23,6 +23,7 @@ public class B9 implements IBot{
     protected Seat seat;
     protected Hid dealerHid;
     protected Card dealerUpCard;
+    protected double oldBet;
     
     /**
      * Constructor
@@ -89,15 +90,19 @@ public class B9 implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
-        LOG.info("b9 alerted of dealt card...");
-        
+       LOG.info("b9 alerted of dealt card...");
+       
         if (this.dealerHid == null && hid.getSeat() == Seat.DEALER){
             this.dealerHid = hid;
             this.dealerUpCard = card; 
         }
-        if (myHand.getHid().equals(hid) && myHand.size() > 2 && !(myHand.isBroke())){
+        if (myHand.getHid() == hid && myHand.size() > 2 && !(myHand.isBroke()) && oldBet == this.hid.getAmt()){
+            System.out.println("DEAL HIDS MATCH...");
+            System.out.println("Old bet: " + oldBet);
+            System.out.println("New bet: " + this.hid.getAmt());
             respond();
         }
+
     }
 
     /**
@@ -185,7 +190,9 @@ public class B9 implements IBot{
     @Override
     public void play(Hid hid) {
         LOG.info("b9 reponding if it is its turn...");
-        if (hid.equals(myHand.getHid())) {
+        if (myHand.getHid() == hid) {
+            System.out.println("PLAY HIDS MATCH...");
+            oldBet = this.hid.getAmt();
             respond();
         }
     }
