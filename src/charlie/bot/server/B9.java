@@ -28,7 +28,7 @@ public class B9 implements IBot{
      * Constructor
      */
     public B9(){
-        LOG.info("IN BOT..."); 
+        LOG.info("new instance of b9 created..."); 
     }
     
     /**
@@ -68,7 +68,7 @@ public class B9 implements IBot{
      */
     @Override
     public void startGame(List<Hid> hids, int shoeSize) {
-        LOG.info("IN START GAME...");
+        LOG.info("b9 alerted of start game...");
     }
 
     /**
@@ -77,7 +77,7 @@ public class B9 implements IBot{
      */
     @Override
     public void endGame(int shoeSize) {
-        LOG.info("IN END GAME...");
+        LOG.info("b9 alerted of end game...");
     }
 
     /**
@@ -89,7 +89,7 @@ public class B9 implements IBot{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values) {
-        LOG.info("IN BOT DEAL...");
+        LOG.info("b9 alerted of dealt card...");
         
         if (this.dealerHid == null && hid.getSeat() == Seat.DEALER){
             this.dealerHid = hid;
@@ -114,7 +114,7 @@ public class B9 implements IBot{
      */
     @Override
     public void bust(Hid hid) {
-        LOG.info("IN BUSTED...");
+        LOG.info("b9 alerted of bust...");
     }
 
     /**
@@ -123,7 +123,7 @@ public class B9 implements IBot{
      */
     @Override
     public void win(Hid hid) {
-        LOG.info("IN WIN...");
+        LOG.info("b9 alerted of win...");
     }
 
     /**
@@ -132,7 +132,7 @@ public class B9 implements IBot{
      */ 
     @Override
     public void blackjack(Hid hid) {
-        LOG.info("IN BLACKJACK...");
+        LOG.info("b9 alerted of blackjack...");
     }
 
     /**
@@ -141,7 +141,7 @@ public class B9 implements IBot{
      */ 
     @Override
     public void charlie(Hid hid) {
-        LOG.info("IN CHARLIE...");
+        LOG.info("b9 alerted of charlie...");
     }
 
     /**
@@ -150,7 +150,7 @@ public class B9 implements IBot{
      */ 
     @Override
     public void lose(Hid hid) {
-        LOG.info("IN LOSE...");
+        LOG.info("b9 alerted of lose...");
     }
 
     /**
@@ -159,7 +159,7 @@ public class B9 implements IBot{
      */ 
     @Override
     public void push(Hid hid) {
-        LOG.info("IN PUSH...");
+        LOG.info("b9 alerted of push...");
     }
 
     /**
@@ -167,14 +167,14 @@ public class B9 implements IBot{
      */ 
     @Override
     public void shuffling() {
-        LOG.info("IN SHUFFLING...");
+        LOG.info("b9 alerted of shuffling...");
     }
 
     /**
      * Responds when it is my turn.
      */
     protected void respond() {
-        LOG.info("IN RESPOND...");
+        LOG.info("b9 reponding to its turn...");
         new Thread(new Responder(this,myHand,dealer,dealerUpCard)).start();        
     }
     
@@ -184,8 +184,8 @@ public class B9 implements IBot{
      */ 
     @Override
     public void play(Hid hid) {
-        LOG.info("IN PLAY...");
-        if (hid == myHand.getHid()) {
+        LOG.info("b9 reponding if it is its turn...");
+        if (hid.equals(myHand.getHid())) {
             respond();
         }
     }
