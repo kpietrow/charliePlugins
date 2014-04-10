@@ -54,8 +54,6 @@ public class Responder implements Runnable {
         
         // B9 will randomly choose to ignore the basic strategy.
         if (ignoreBS == 0) {
-            System.out.println("DELAY: " + DELAY);
-            System.out.println("RANDOM PLAY MADE...");
             advice = plays[randomPlay];
         } else {
             advice = bs.advise(myHand, dealerUpCard);

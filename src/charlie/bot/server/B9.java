@@ -97,9 +97,6 @@ public class B9 implements IBot{
             this.dealerUpCard = card; 
         }
         if (myHand.getHid() == hid && myHand.size() > 2 && !(myHand.isBroke()) && oldBet == this.hid.getAmt()){
-            System.out.println("DEAL HIDS MATCH...");
-            System.out.println("Old bet: " + oldBet);
-            System.out.println("New bet: " + this.hid.getAmt());
             respond();
         }
 
@@ -191,7 +188,6 @@ public class B9 implements IBot{
     public void play(Hid hid) {
         LOG.info("b9 reponding if it is its turn...");
         if (myHand.getHid() == hid) {
-            System.out.println("PLAY HIDS MATCH...");
             oldBet = this.hid.getAmt();
             respond();
         }
