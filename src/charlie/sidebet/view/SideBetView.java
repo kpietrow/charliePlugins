@@ -1,13 +1,22 @@
 package charlie.sidebet.view;
 
+import charlie.audio.Effect;
+import charlie.audio.SoundFactory;
 import charlie.card.Hid;
 import charlie.plugin.ISideBetView;
 import charlie.view.AMoneyManager;
+import static charlie.view.AMoneyManager.PLACE_HOME_X;
+import static charlie.view.AMoneyManager.PLACE_HOME_Y;
+import static charlie.view.AMoneyManager.STAKE_HOME_X;
+import static charlie.view.AMoneyManager.STAKE_HOME_Y;
+import charlie.view.sprite.AtStakeSprite;
+import static charlie.view.sprite.AtStakeSprite.DIAMETER;
 
 import charlie.view.sprite.ChipButton;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.util.List;
 import org.slf4j.Logger;
@@ -26,6 +35,7 @@ public class SideBetView implements ISideBetView {
     public final static int DIAMETER = 50;
     
     protected Font font = new Font("Arial", Font.BOLD, 18);
+    protected Font descFont = new Font("Arial", Font.BOLD, 15);
     protected BasicStroke stroke = new BasicStroke(3);
     
     // See http://docs.oracle.com/javase/tutorial/2d/geometry/strokeandfill.html
@@ -39,6 +49,9 @@ public class SideBetView implements ISideBetView {
     protected List<ChipButton> buttons;
     protected int amt = 0;
     protected AMoneyManager moneyManager;
+    protected AtStakeSprite wager = new AtStakeSprite(X-DIAMETER/2,Y-DIAMETER/2 - 5,50);
+    public final static int PLACE_HOME_X = X + AtStakeSprite.DIAMETER + 10;
+    public final static int PLACE_HOME_Y = Y + AtStakeSprite.DIAMETER / 4;
 
     public SideBetView() {
         LOG.info("side bet view constructed");
@@ -68,13 +81,18 @@ public class SideBetView implements ISideBetView {
             if(button.isPressed(x, y)) {
                 amt += button.getAmt();
                 LOG.info("A. side bet amount "+button.getAmt()+" updated new amt = "+amt);
+                SoundFactory.play(Effect.CHIPS_IN);
             } 
         }
         
-        if(oldAmt == amt) {
-            amt = 0;
-            LOG.info("B. side bet amount cleared");
+        if(this.wager.isPressed(x, y)) {
+                if (oldAmt == amt) {
+                    amt = 0;
+                    LOG.info("B. side bet amount cleared");
+                    SoundFactory.play(Effect.CHIPS_OUT);
+                }
         }
+        
     }
 
     /**
@@ -128,12 +146,26 @@ public class SideBetView implements ISideBetView {
         // Draw the at-stake place on the table
         g.setColor(Color.RED); 
         g.setStroke(dashed);
-        g.drawOval(X-DIAMETER/2, Y-DIAMETER/2, DIAMETER, DIAMETER);
+        g.drawOval(X-DIAMETER/2, Y-DIAMETER/2 - 6, DIAMETER, DIAMETER);
+        
+        // Draw the side bet descriptions on the table
+        g.setFont(descFont);
+        g.setColor(Color.BLACK);
+        g.drawString("SUPER 7 pays 3:1", X + 40, Y - 15);
+        g.drawString("ROYAL MATCH pays 25:1", X + 40, Y);
+        g.drawString("EXACTLY 13 pays 1:1", X + 40, Y + 15);
         
         // Draw the at-stake amount
         g.setFont(font);
         g.setColor(Color.WHITE);
-        g.drawString(""+amt, X-5, Y+5);
+        
+        String text = amt + "";
+        FontMetrics fm = g.getFontMetrics(font);
+
+        int x = X-DIAMETER/2 + DIAMETER/2 - fm.charsWidth(text.toCharArray(), 0, text.length()) / 2;
+        int y = Y-DIAMETER/2 - 6 + DIAMETER/2 + fm.getHeight() / 4;
+        
+        g.drawString(amt+"", x, y);
     }
 }
 
