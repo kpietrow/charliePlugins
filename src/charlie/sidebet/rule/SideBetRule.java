@@ -17,9 +17,9 @@ public class SideBetRule implements ISideBetRule {
     private final Double PAYOFF_SUPER7 = 3.0;
     private final Double PAYOFF_ROYAL_MATCH = 25.0;
     private final Double PAYOFF_EXACTLY_13 = 1.0;
-    private double sevenPayout = 0.0;
-    private double royalPayout = 0.0;
-    private double exactlyPayout = 0.0;
+    private double sevenPayout;
+    private double royalPayout;
+    private double exactlyPayout;
 
     /**
      * Apply rule to the hand and return the payout if the rule matches
@@ -32,6 +32,11 @@ public class SideBetRule implements ISideBetRule {
      */
     @Override
     public double apply(Hand hand) {
+        //reset payout amounts between games
+        sevenPayout = 0.0;
+        royalPayout = 0.0;
+        exactlyPayout = 0.0;
+        
         Double bet = hand.getHid().getSideAmt();
         LOG.info("side bet amount = "+bet);
         
@@ -60,14 +65,26 @@ public class SideBetRule implements ISideBetRule {
         }
         
         //return highest payout or amount lost
-        if (royalPayout > 0)
+        if (royalPayout > 0) {
+            LOG.info("ROYAL PAYOUT...");
+            System.out.println(royalPayout);
             return royalPayout;
-        else if(sevenPayout > 0)
+        }
+        else if(sevenPayout > 0){
+            LOG.info("SEVEN PAYOUT...");
+            System.out.println(sevenPayout);
             return sevenPayout;
-        else if (exactlyPayout > 0)
+        }
+        else if (exactlyPayout > 0) {
+            LOG.info("EXACTLY PAYOUT...");
+            System.out.println(exactlyPayout);
             return exactlyPayout;
-        else
-            return -bet;   
+        }
+        else {
+            LOG.info("NEGATIVE BET...");
+            LOG.info(bet.toString());
+            return -bet; 
+        }
     }
     
     /**
@@ -104,6 +121,16 @@ public class SideBetRule implements ISideBetRule {
      *          the side bet payout
      */
     private double royalMatchCheck(Hand hand, Double bet){
+        Card card1 = hand.getCard(0);
+        Card card2 = hand.getCard(1);
+        
+        if (card1.getSuit() == card2.getSuit()) {
+            LOG.info("side bet Royal Match matches");
+            return bet * PAYOFF_ROYAL_MATCH;
+        }
+        
+        LOG.info("side bet Royal Match no match");
+        
         return 0.0;
     }
     
@@ -118,6 +145,13 @@ public class SideBetRule implements ISideBetRule {
      *          the side bet payout
      */
     private double exactlyThirteenCheck(Hand hand, Double bet){
+        if (hand.getValue() == 13) {
+            LOG.info("side bet Exactly 13 matches");
+            return bet * PAYOFF_EXACTLY_13;
+        }
+        
+        LOG.info("side bet Exactly 13 no match");
+        
         return 0.0;
     }
 }
