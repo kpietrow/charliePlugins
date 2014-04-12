@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class implements the side bet rule for Super 7.
+ * This class implements the side bet rule for Super 7,
+ * Royal Match and Exactly 13.
  * 
  * @author Devin Young and Kevin Pietrow
  */
@@ -17,6 +18,7 @@ public class SideBetRule implements ISideBetRule {
     private final Double PAYOFF_SUPER7 = 3.0;
     private final Double PAYOFF_ROYAL_MATCH = 25.0;
     private final Double PAYOFF_EXACTLY_13 = 1.0;
+    
     private double sevenPayout;
     private double royalPayout;
     private double exactlyPayout;
@@ -66,23 +68,19 @@ public class SideBetRule implements ISideBetRule {
         
         //return highest payout or amount lost
         if (royalPayout > 0) {
-            LOG.info("ROYAL PAYOUT...");
-            System.out.println(royalPayout);
+            LOG.info("entering royal payout...");
             return royalPayout;
         }
         else if(sevenPayout > 0){
-            LOG.info("SEVEN PAYOUT...");
-            System.out.println(sevenPayout);
+            LOG.info("entering seven payout...");
             return sevenPayout;
         }
         else if (exactlyPayout > 0) {
-            LOG.info("EXACTLY PAYOUT...");
-            System.out.println(exactlyPayout);
+            LOG.info("entering exactly payout...");
             return exactlyPayout;
         }
         else {
-            LOG.info("NEGATIVE BET...");
-            LOG.info(bet.toString());
+            LOG.info("losing side bet returned...");
             return -bet; 
         }
     }
@@ -124,6 +122,7 @@ public class SideBetRule implements ISideBetRule {
         Card card1 = hand.getCard(0);
         Card card2 = hand.getCard(1);
         
+        // Tests if there is a royal match
         if (card1.getSuit() == card2.getSuit()) {
             LOG.info("side bet Royal Match matches");
             return bet * PAYOFF_ROYAL_MATCH;
@@ -145,6 +144,7 @@ public class SideBetRule implements ISideBetRule {
      *          the side bet payout
      */
     private double exactlyThirteenCheck(Hand hand, Double bet){
+        // Tests if hand value equals 13
         if (hand.getValue() == 13) {
             LOG.info("side bet Exactly 13 matches");
             return bet * PAYOFF_EXACTLY_13;
