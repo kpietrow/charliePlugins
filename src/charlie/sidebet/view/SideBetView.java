@@ -64,6 +64,13 @@ public class SideBetView implements ISideBetView {
     protected AtStakeSprite wager = new AtStakeSprite(X-DIAMETER/2,Y-DIAMETER/2 - 5,50);
     public final static int PLACE_HOME_X = X + AtStakeSprite.DIAMETER + 10;
     public final static int PLACE_HOME_Y = Y + AtStakeSprite.DIAMETER / 4;
+    private double finalBet;
+    private boolean startGame;
+    protected Color looseColorFg = new Color(250,58,5);
+    protected Color looseColorBg = Color.WHITE;
+    protected Color winColorBg = Color.BLACK;
+    protected Color winColorFg = new Color(116,255,4);
+    protected Font outcomeFont = new Font("Arial", Font.BOLD, 18);
 
     public SideBetView() {
         LOG.info("side bet view constructed");
@@ -129,7 +136,8 @@ public class SideBetView implements ISideBetView {
     @Override
     public void ending(Hid hid) {
         double bet = hid.getSideAmt();
-        
+        this.startGame = false;
+        this.finalBet = bet;
         if(bet == 0)
             return;
 
@@ -146,6 +154,7 @@ public class SideBetView implements ISideBetView {
      */
     @Override
     public void starting() {
+        this.startGame = true;
     }
 
     /**
@@ -198,6 +207,43 @@ public class SideBetView implements ISideBetView {
             Chip chip = chips.get(i);
             chip.render(g);
         }
+        
+        if (this.finalBet != 0 && this.startGame != true){
+            System.out.println("FINAL BET..................." + this.finalBet);
+            String outcomeText = "";
+            Color background;
+            Color foreground;
+            
+            if (this.finalBet > 0){
+                outcomeText = " WIN ! ";
+                background = winColorBg;
+                foreground = winColorFg;
+            }
+            else {
+                outcomeText = " LOSE ! ";
+                background = looseColorBg;
+                foreground = looseColorFg;
+            }
+            
+            int n = chips.size() - 1;
+            
+            //keeps win/lose banner centered over at stake chips
+            int placeX = ((X + (AtStakeSprite.DIAMETER / 2) + 5)+(X + (AtStakeSprite.DIAMETER / 2) + 5 + (n * width/3)))/2;
+            int placeY = y;
+            
+            fm = g.getFontMetrics(outcomeFont);
+            int w = fm.charsWidth(outcomeText.toCharArray(), 0, outcomeText.length());
+            int h = fm.getHeight();
+            
+            g.setColor(background);
+            g.fillRoundRect(placeX, placeY-h+5, w, h, 5, 5);
+            
+            g.setColor(foreground);
+            g.setFont(outcomeFont);
+            
+            g.drawString(outcomeText,placeX,placeY);
+        }
+        
     }
 }
 
