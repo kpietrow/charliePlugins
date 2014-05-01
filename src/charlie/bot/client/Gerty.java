@@ -3,10 +3,13 @@ package charlie.bot.client;
 import charlie.actor.Courier;
 import charlie.card.Card;
 import charlie.card.Hid;
+import charlie.dealer.Seat;
 import charlie.plugin.IGerty;
 import charlie.view.AMoneyManager;
 import java.awt.Graphics2D;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class implements the behavior of an artificial player.
@@ -15,11 +18,15 @@ import java.util.List;
  */
 public class Gerty implements IGerty{
     
+    private final Logger LOG = LoggerFactory.getLogger(Gerty.class);
+    protected Courier courier;
+    protected AMoneyManager moneyManager;
+    
     /**
      * Constructor
      */
     public Gerty(){
-        
+        LOG.info("new auto-player generated...");
     }
     
     /**
@@ -27,7 +34,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void go( ){
-        
+        LOG.info("auto-player is asked for bet...");
     }
     
     /**
@@ -36,7 +43,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void setCourier(Courier courier){
-        
+        this.courier = courier;
     }
     
     /**
@@ -45,7 +52,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void setMoneyManager(AMoneyManager moneyManager){
-        
+        this.moneyManager = moneyManager;
     }
     
     /**
@@ -53,7 +60,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void update(){
-        
+        LOG.info("auto-player updated...");
     }
     
     /**
@@ -62,7 +69,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void render(Graphics2D g){
-        
+        LOG.info("rendering auto-player...");
     }
     
     /**
@@ -73,7 +80,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void startGame(List<Hid> hids,int shoeSize){
-        
+        LOG.info("auto-player alerted of start game...");
     }
     
     /**
@@ -82,7 +89,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void endGame(int shoeSize){
-        
+        LOG.info("auto-player alerted of end game...");
     }
     
     /**
@@ -94,7 +101,15 @@ public class Gerty implements IGerty{
      */
     @Override
     public void deal(Hid hid, Card card, int[] values){
-        
+        LOG.info("auto-player alerted of dealt card...");
+       
+        /*if (this.dealerHid == null && hid.getSeat() == Seat.DEALER){
+            this.dealerHid = hid;
+            this.dealerUpCard = card; 
+        }
+        if (myHand.getHid() == hid && myHand.size() > 2 && !(myHand.isBroke()) && oldBet == this.hid.getAmt()){
+            respond();
+        }*/
     }
     
     /**
@@ -102,7 +117,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void insure(){
-        
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     /**
@@ -110,8 +125,8 @@ public class Gerty implements IGerty{
      * @param hid Hand id
      */
     @Override
-    public void bust(Hid hid){
-        
+    public void bust(Hid hid){ 
+        LOG.info("auto-player alerted of bust...");
     }
     
     /**
@@ -120,7 +135,7 @@ public class Gerty implements IGerty{
      */    
     @Override
     public void win(Hid hid){
-        
+        LOG.info("auto-player alerted of win...");
     }
     
     /**
@@ -129,7 +144,7 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void blackjack(Hid hid){
-        
+        LOG.info("auto-player alerted of blackjack...");
     }
     
     /**
@@ -138,7 +153,7 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void charlie(Hid hid){
-        
+        LOG.info("auto-player alerted of charlie...");
     }
     
     /**
@@ -147,7 +162,7 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void lose(Hid hid){
-        
+        LOG.info("auto-player alerted of lose...");
     }
     
     /**
@@ -156,7 +171,7 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void push(Hid hid){
-        
+        LOG.info("auto-player alerted of push...");
     }
     
     /**
@@ -164,7 +179,7 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void shuffling(){
-        
+        LOG.info("auto-player alerted of shuffling...");
     }
     
     /**
@@ -173,7 +188,11 @@ public class Gerty implements IGerty{
      */     
     @Override
     public void play(Hid hid){
-        
+        LOG.info("auto-player reponding if it is its turn...");
+        /*if (myHand.getHid() == hid) {
+            oldBet = this.hid.getAmt();
+            respond();
+        }*/
     }
     
 }
