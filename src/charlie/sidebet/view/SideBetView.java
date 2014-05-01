@@ -47,6 +47,9 @@ public class SideBetView implements ISideBetView {
     protected Color looseColorBg = Color.WHITE;
     protected Color winColorBg = Color.BLACK;
     protected Color winColorFg = new Color(116,255,4);
+    protected String outcomeText;
+    protected Color background;
+    protected Color foreground;
     
     protected Font font = new Font("Arial", Font.BOLD, 18);
     protected Font descFont = new Font("Arial", Font.BOLD, 15);
@@ -120,14 +123,16 @@ public class SideBetView implements ISideBetView {
             } 
         }
         
-        // Test if at stake area was clicked to be cleared
+        // Test if at-stake area was clicked to be cleared
         // and clears at-stake dollar amount and chips
         if(this.wager.isPressed(x, y)) {
                 if (oldAmt == amt) {
                     amt = 0;
                     LOG.info("B. side bet amount cleared");
                     
+                    // Clears chips and win/lose banner
                     chips.clear();
+                    //this.startGame = true;
                     
                     SoundFactory.play(Effect.CHIPS_OUT);
                 }
@@ -191,13 +196,6 @@ public class SideBetView implements ISideBetView {
         g.setStroke(dashed);
         g.drawOval(X-DIAMETER/2, Y-DIAMETER/2 - 6, DIAMETER, DIAMETER);
         
-        // Draw the side bet descriptions on the table
-        g.setFont(descFont);
-        g.setColor(Color.BLACK);
-        g.drawString("SUPER 7 pays 3:1", X + 40, Y - 15);
-        g.drawString("ROYAL MATCH pays 25:1", X + 40, Y);
-        g.drawString("EXACTLY 13 pays 1:1", X + 40, Y + 15);
-        
         // Set the at-stake amount color and font
         g.setFont(font);
         g.setColor(Color.WHITE);
@@ -212,6 +210,13 @@ public class SideBetView implements ISideBetView {
         // Draw the at-stake amount
         g.drawString(amt+"", x, y);
         
+        // Draw the side bet descriptions on the table
+        g.setFont(descFont);
+        g.setColor(Color.BLACK);
+        g.drawString("SUPER 7 pays 3:1", X + 40, Y - 15);
+        g.drawString("ROYAL MATCH pays 25:1", X + 40, Y);
+        g.drawString("EXACTLY 13 pays 1:1", X + 40, Y + 15);
+        
         // Draw the at-stake chips on the table
         for(int i=0; i < chips.size(); i++) {
             Chip chip = chips.get(i);
@@ -221,10 +226,6 @@ public class SideBetView implements ISideBetView {
         // At end game, draw the win or lose banner
         // over at-stake chips if a side bet was made
         if (this.finalBet != 0 && this.startGame != true){
-            String outcomeText;
-            Color background;
-            Color foreground;
-            
             // Set win data
             if (this.finalBet > 0){
                 outcomeText = " WIN ! ";

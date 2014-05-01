@@ -98,11 +98,13 @@ public class SideBetRule implements ISideBetRule {
     private double superSevenCheck(Hand hand, Double bet){
         Card card = hand.getCard(0);
  
+        // Tests if the first card is a seven
         if(card.getRank() == 7) {
             LOG.info("side bet SUPER 7 matches");
             return bet * PAYOFF_SUPER7;
         }
         
+        LOG.info("side bet rule no match");
         LOG.info("side bet SUPER 7 no match");
         
         return 0.0;

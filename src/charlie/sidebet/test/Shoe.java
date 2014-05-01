@@ -92,7 +92,7 @@ public class Shoe extends charlie.card.Shoe {
         cards.add(new Card(6,Card.Suit.HEARTS));
         cards.add(new Card(Card.KING,Card.Suit.CLUBS));
         
-        cards.add(new Card(7,Card.Suit.SPADES));
+        cards.add(new Card(8,Card.Suit.SPADES));
         cards.add(new Card(6,Card.Suit.DIAMONDS)); 
         
         cards.add(new Card(Card.KING,Card.Suit.CLUBS));
