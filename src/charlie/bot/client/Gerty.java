@@ -2,9 +2,11 @@ package charlie.bot.client;
 
 import charlie.actor.Courier;
 import charlie.card.Card;
+import charlie.card.Hand;
 import charlie.card.Hid;
 import charlie.dealer.Seat;
 import charlie.plugin.IGerty;
+import charlie.util.Constant;
 import charlie.view.AMoneyManager;
 import java.awt.Graphics2D;
 import java.util.List;
@@ -21,6 +23,7 @@ public class Gerty implements IGerty{
     private final Logger LOG = LoggerFactory.getLogger(Gerty.class);
     protected Courier courier;
     protected AMoneyManager moneyManager;
+    protected Hid myHid;
     
     /**
      * Constructor
@@ -35,6 +38,13 @@ public class Gerty implements IGerty{
     @Override
     public void go( ){
         LOG.info("auto-player is asked for bet...");
+        
+        //clears any old bets and makes a new one (for now...)
+        moneyManager.clearBet();
+        moneyManager.upBet(Constant.MIN_BET);
+        
+        //sends bet to courier and gets auto-players hand id
+        myHid = courier.bet(Constant.MIN_BET, 0);
     }
     
     /**
@@ -60,7 +70,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void update(){
-        LOG.info("auto-player updated...");
+        //LOG.info("auto-player updated...");
     }
     
     /**
@@ -69,7 +79,7 @@ public class Gerty implements IGerty{
      */
     @Override
     public void render(Graphics2D g){
-        LOG.info("rendering auto-player...");
+        //LOG.info("rendering auto-player...");
     }
     
     /**
