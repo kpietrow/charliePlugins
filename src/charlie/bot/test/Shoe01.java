@@ -10,7 +10,7 @@ import java.util.Random;
 public class Shoe01 extends charlie.card.Shoe {   
     @Override
     public void init() { 
-        super.ran = new Random(1);
+        super.ran = new Random(2);
         
         super.numDecks = 1;
         

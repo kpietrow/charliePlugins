@@ -10,10 +10,14 @@ import charlie.plugin.IGerty;
 import charlie.util.Constant;
 import charlie.util.Play;
 import charlie.view.AMoneyManager;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +45,7 @@ public class Gerty implements IGerty{
     protected int randomPlay;
     protected int ignoreBS;
     protected int i;
-    protected double shoeSize;
+    protected int shoeSize;
     protected double decksRemaining;
     protected int runningCount;
     protected int trueCount;
@@ -57,12 +61,21 @@ public class Gerty implements IGerty{
     protected int pushes;
     protected int totalInitialBets;
     protected HashMap<Integer, Double> advantages;
+    public final static int X = 400;
+    public final static int Y = 200;
+    protected Font descFont = new Font("Arial", Font.BOLD, 15);
+    protected Font titleFont = new Font("Arial", Font.BOLD, 20);
+    protected long startTime;
+    protected long elapsedTime;
+    protected boolean minutePassed;
+    protected DecimalFormat formatter;
     
     /**
      * Constructor
      */
     public Gerty(){
         LOG.info("new auto-player generated...");
+        formatter = new DecimalFormat("##.##");
         bs = new BasicStrategy();
         random = new Random();
         DELAY = random.nextInt(2501 - 1000) + 1000;
@@ -70,6 +83,7 @@ public class Gerty implements IGerty{
         ignoreBS = DELAY % 5;
         decksRemaining = 1;
         runningCount = 0;
+        maxBetAmount = 0;
         gamesPlayed = 0;
         blackjacks = 0;
         charlies = 0;
@@ -78,8 +92,10 @@ public class Gerty implements IGerty{
         loses = 0;
         pushes = 0;
         totalInitialBets = 0;
+        startTime = System.nanoTime();
         advantages = new HashMap();
         
+        // Builds a hash map of trueCount to player advantage.
         advantages.put(0, 0.0);
         advantages.put(1, 0.0099);
         advantages.put(2, 0.0145);
@@ -117,20 +133,23 @@ public class Gerty implements IGerty{
     public void go( ){
         LOG.info("auto-player is asked for bet...");
         i = 0;
+        int adjustedTrueCount;
         
         // an approximation of kelly's criterion (because there are many 
         // different bets and payouts, causing odds to shift for each game).
         // f = a / v
         // where f = fraction of bankroll to wager, a = player advantage, v = games variance.
         trueCount = (int) Math.ceil(runningCount / decksRemaining);
+        adjustedTrueCount = trueCount;
+        System.out.println("trueCount1: " + trueCount);
         if (trueCount < 0)
-            trueCount = 0;
+            adjustedTrueCount = 0;
         if (trueCount > 26)
-            trueCount = 26;
+            adjustedTrueCount = 26;
         System.out.println("decksRemaining: " + decksRemaining);
         System.out.println("runningCount: " + runningCount);
-        System.out.println("trueCount: " + trueCount);
-        double a = advantages.get(trueCount);
+        System.out.println("trueCount2: " + trueCount);
+        double a = advantages.get(adjustedTrueCount);
         double f = a / 1.3225;
         int currentBet = 0;
         
@@ -141,13 +160,15 @@ public class Gerty implements IGerty{
         
         //clears any old bets and makes a new one (for now...)
         if (f <= 0 || gamesPlayed == 0) {
-            moneyManager.clearBet();
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+            if (moneyManager.getWager() != Constant.MIN_BET) {
+                moneyManager.clearBet();
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                moneyManager.upBet(Constant.MIN_BET);
             }
-            moneyManager.upBet(Constant.MIN_BET);
             totalInitialBets += Constant.MIN_BET;
             currentBet += Constant.MIN_BET;
         }
@@ -164,16 +185,22 @@ public class Gerty implements IGerty{
             for (int j = 0; j < chipsToWager; j++) {
                 moneyManager.upBet(Constant.MIN_BET);
                 try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 totalInitialBets += Constant.MIN_BET;
                 currentBet += Constant.MIN_BET;
             }
         }
         
-        myHid = courier.bet(Constant.MIN_BET, 0);
+        if (currentBet > maxBetAmount){
+            maxBetAmount = currentBet;
+        }
+        
+        meanBetPerGame = (totalInitialBets * 1.0) / (gamesPlayed + 1.0);
+        
+        myHid = courier.bet(currentBet, 0);
         myHand = new Hand(myHid);
     }
     
@@ -201,6 +228,8 @@ public class Gerty implements IGerty{
     @Override
     public void update(){
         //LOG.info("auto-player updated...");
+        long endTime = System.nanoTime();
+        elapsedTime = endTime - startTime;
     }
     
     /**
@@ -210,6 +239,27 @@ public class Gerty implements IGerty{
     @Override
     public void render(Graphics2D g){
         //LOG.info("rendering auto-player...");
+        // Draw the side bet descriptions on the table
+        g.setFont(titleFont);
+        g.setColor(Color.BLACK);
+        g.drawString("Count Statistics", X - 395, Y - 20);
+        g.setFont(descFont);
+        g.setColor(Color.BLACK);
+        g.drawString("------------------------------", X - 395, Y - 12);
+        g.drawString("Counting System: Hi-Lo", X - 395, Y);
+        g.drawString("Shoe Size: " + shoeSize, X - 395, Y + 15);
+        g.drawString("Running Count: " + runningCount, X - 395, Y + 30);
+        g.drawString("True Count: " + trueCount, X - 395, Y + 45);
+        g.drawString("Games Played: " + gamesPlayed, X - 395, Y + 60);
+        g.drawString("Minutes Played: " + TimeUnit.MINUTES.convert(elapsedTime, TimeUnit.NANOSECONDS), X - 395, Y + 75);
+        g.drawString("Max Bet Amount: " + maxBetAmount, X - 395, Y + 90);
+        g.drawString("Mean Bet Per Game: " + formatter.format(meanBetPerGame), X - 395, Y + 105);
+        g.drawString("Blackjacks: " + blackjacks, X - 395, Y + 120);
+        g.drawString("Charlies: " + charlies, X - 395, Y + 135);
+        g.drawString("Wins: " + wins, X - 395, Y + 150);
+        g.drawString("Loses: " + loses, X - 395, Y + 165);
+        g.drawString("Breaks: " + breaks, X - 395, Y + 180);
+        g.drawString("Pushes: " + pushes, X - 395, Y + 195);
     }
     
     /**
@@ -221,6 +271,7 @@ public class Gerty implements IGerty{
     @Override
     public void startGame(List<Hid> hids,int shoeSize){
         LOG.info("auto-player alerted of start game...");
+        this.shoeSize = shoeSize;
     }
     
     /**
@@ -231,10 +282,11 @@ public class Gerty implements IGerty{
     public void endGame(int shoeSize){
         LOG.info("auto-player alerted of end game...");
         decksRemaining = shoeSize / 52.0;
+        this.shoeSize = shoeSize;
         gamesPlayed++;
         dealerHid = null;
         try {
-            Thread.sleep(500);
+            Thread.sleep(2000);
         } catch (InterruptedException ex) {
             java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
         }
