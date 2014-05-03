@@ -11,6 +11,7 @@ import charlie.util.Constant;
 import charlie.util.Play;
 import charlie.view.AMoneyManager;
 import java.awt.Graphics2D;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -40,6 +41,22 @@ public class Gerty implements IGerty{
     protected int randomPlay;
     protected int ignoreBS;
     protected int i;
+    protected double shoeSize;
+    protected double decksRemaining;
+    protected int runningCount;
+    protected int trueCount;
+    protected int gamesPlayed;
+    protected int minutesPlayed;
+    protected int maxBetAmount;
+    protected double meanBetPerGame;
+    protected int blackjacks;
+    protected int charlies;
+    protected int wins;
+    protected int breaks;
+    protected int loses;
+    protected int pushes;
+    protected int totalInitialBets;
+    protected HashMap<Integer, Double> advantages;
     
     /**
      * Constructor
@@ -51,6 +68,46 @@ public class Gerty implements IGerty{
         DELAY = random.nextInt(2501 - 1000) + 1000;
         randomPlay = random.nextInt(4);
         ignoreBS = DELAY % 5;
+        decksRemaining = 1;
+        runningCount = 0;
+        gamesPlayed = 0;
+        blackjacks = 0;
+        charlies = 0;
+        wins = 0;
+        breaks = 0;
+        loses = 0;
+        pushes = 0;
+        totalInitialBets = 0;
+        advantages = new HashMap();
+        
+        advantages.put(0, 0.0);
+        advantages.put(1, 0.0099);
+        advantages.put(2, 0.0145);
+        advantages.put(3, 0.02);
+        advantages.put(4, 0.022);
+        advantages.put(5, 0.03);
+        advantages.put(6, 0.0385);
+        advantages.put(7, 0.045);
+        advantages.put(8, 0.05);
+        advantages.put(9, 0.0615);
+        advantages.put(10, 0.0615);
+        advantages.put(11, 0.0715);
+        advantages.put(12, 0.08);
+        advantages.put(13, 0.095);
+        advantages.put(14, 0.0925);
+        advantages.put(15, 0.1);
+        advantages.put(16, 0.1085);
+        advantages.put(17, 0.1195);
+        advantages.put(18, 0.125);
+        advantages.put(19, 0.135);
+        advantages.put(20, 0.14);
+        advantages.put(21, 0.1395);
+        advantages.put(22, 0.1415);
+        advantages.put(23, 0.155);
+        advantages.put(24, 0.16);
+        advantages.put(25, 0.17);
+        advantages.put(26, 0.18);
+        
     }
     
     /**
@@ -59,13 +116,64 @@ public class Gerty implements IGerty{
     @Override
     public void go( ){
         LOG.info("auto-player is asked for bet...");
+        i = 0;
+        
+        // an approximation of kelly's criterion (because there are many 
+        // different bets and payouts, causing odds to shift for each game).
+        // f = a / v
+        // where f = fraction of bankroll to wager, a = player advantage, v = games variance.
+        trueCount = (int) Math.ceil(runningCount / decksRemaining);
+        if (trueCount < 0)
+            trueCount = 0;
+        if (trueCount > 26)
+            trueCount = 26;
+        System.out.println("decksRemaining: " + decksRemaining);
+        System.out.println("runningCount: " + runningCount);
+        System.out.println("trueCount: " + trueCount);
+        double a = advantages.get(trueCount);
+        double f = a / 1.3225;
+        int currentBet = 0;
+        
+        //System.out.println("runningCount: " + runningCount);
+        //System.out.println("trueCount: " + trueCount);
+        System.out.println("f: " + f);
+        System.out.println("gamesPlayed: " + gamesPlayed);
         
         //clears any old bets and makes a new one (for now...)
-        moneyManager.clearBet();
-        moneyManager.upBet(Constant.MIN_BET);
+        if (f <= 0 || gamesPlayed == 0) {
+            moneyManager.clearBet();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            moneyManager.upBet(Constant.MIN_BET);
+            totalInitialBets += Constant.MIN_BET;
+            currentBet += Constant.MIN_BET;
+        }
+        else {
+            moneyManager.clearBet();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            double wagerAmt = f * moneyManager.getBankroll();
+            int chipsToWager = (int) wagerAmt / Constant.MIN_BET;
+            
+            for (int j = 0; j < chipsToWager; j++) {
+                moneyManager.upBet(Constant.MIN_BET);
+                try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                totalInitialBets += Constant.MIN_BET;
+                currentBet += Constant.MIN_BET;
+            }
+        }
         
         myHid = courier.bet(Constant.MIN_BET, 0);
-        i = 0;
         myHand = new Hand(myHid);
     }
     
@@ -113,7 +221,6 @@ public class Gerty implements IGerty{
     @Override
     public void startGame(List<Hid> hids,int shoeSize){
         LOG.info("auto-player alerted of start game...");
-        //dealerHid = null;
     }
     
     /**
@@ -123,6 +230,8 @@ public class Gerty implements IGerty{
     @Override
     public void endGame(int shoeSize){
         LOG.info("auto-player alerted of end game...");
+        decksRemaining = shoeSize / 52.0;
+        gamesPlayed++;
         dealerHid = null;
         try {
             Thread.sleep(500);
@@ -141,19 +250,30 @@ public class Gerty implements IGerty{
     @Override
     public void deal(Hid hid, Card card, int[] values){
         LOG.info("auto-player alerted of dealt card...");
-        System.out.println("seat: " + hid.getSeat());
+        //System.out.println("seat: " + hid.getSeat());
+        
+        if (card.value() >= 2 && card.value() <= 6) {
+            runningCount += 1;
+        }
+        else if (card.value() >= 7 && card.value() <= 9) {
+            runningCount += 0;
+        }
+        else {
+            runningCount += -1;
+        }
+        
         if (hid.getSeat().equals(Seat.DEALER) && i == 0){
             this.dealerHid = hid;
             this.dealerHand = new Hand(this.dealerHid);
             this.dealerUpCard = card; 
-            System.out.println(dealerHid);
-            System.out.println(dealerUpCard);
+            //System.out.println(dealerHid);
+            //System.out.println(dealerUpCard);
             i++;
         }
         
         if (hid.getSeat().equals(Seat.YOU)) {
             myHand.hit(card);
-            System.out.println("my card: " + card);
+            //System.out.println("my card: " + card);
         }
         
         /*if (this.dealerHid != null && this.dealerHid.equals(hid)) {
@@ -180,6 +300,7 @@ public class Gerty implements IGerty{
     @Override
     public void bust(Hid hid){ 
         LOG.info("auto-player alerted of bust...");
+        breaks++;
     }
     
     /**
@@ -189,6 +310,7 @@ public class Gerty implements IGerty{
     @Override
     public void win(Hid hid){
         LOG.info("auto-player alerted of win...");
+        wins++;
     }
     
     /**
@@ -198,6 +320,7 @@ public class Gerty implements IGerty{
     @Override
     public void blackjack(Hid hid){
         LOG.info("auto-player alerted of blackjack...");
+        blackjacks++;
     }
     
     /**
@@ -207,6 +330,7 @@ public class Gerty implements IGerty{
     @Override
     public void charlie(Hid hid){
         LOG.info("auto-player alerted of charlie...");
+        charlies++;
     }
     
     /**
@@ -216,6 +340,7 @@ public class Gerty implements IGerty{
     @Override
     public void lose(Hid hid){
         LOG.info("auto-player alerted of lose...");
+        loses++;
     }
     
     /**
@@ -225,6 +350,7 @@ public class Gerty implements IGerty{
     @Override
     public void push(Hid hid){
         LOG.info("auto-player alerted of push...");
+        pushes++;
     }
     
     /**
@@ -233,8 +359,9 @@ public class Gerty implements IGerty{
     @Override
     public void shuffling(){
         LOG.info("auto-player alerted of shuffling...");
+        runningCount = 0;
         try {
-            Thread.sleep(1500);
+            Thread.sleep(3000);
         } catch (InterruptedException ex) {
             java.util.logging.Logger.getLogger(Gerty.class.getName()).log(Level.SEVERE, null, ex);
         }
